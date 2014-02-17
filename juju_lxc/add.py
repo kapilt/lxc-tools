@@ -30,13 +30,11 @@ def add_container(env, container_name, base):
     log.debug(" Registering container with juju")
     nonce = "manual:%s" % uuid.uuid4().get_hex()
     result = env.register_machine(
-        container_name,
-        nonce,
-        "precise",
-        {'Mem': 1024 * 16,
-         'Arch': 'amd64',
-         'CpuCores': 2},
+        container_name, nonce, "precise",
+        {'Mem': 1024 * 16, 'Arch': 'amd64', 'CpuCores': 2},
         [])
+
+    # Create userdata for the machine.
     mid = result['Machine']
     result = env.provisioning_script(mid, nonce, disable_apt=True)
     tf = tempfile.NamedTemporaryFile(delete=False)
@@ -46,9 +44,8 @@ def add_container(env, container_name, base):
     log.debug(" Cloning container")
     subprocess.check_output(
         ["sudo", "lxc-clone", "-s", "-B", "btrfs",
-         base, container_name, "--", "-u", tf.name,
-         "-i", container_name])
-
+         base, container_name,
+         "--", "-u", tf.name, "-i", container_name])
     log.debug(" Starting container as juju machine %s", mid)
     with tf:
         subprocess.check_output(

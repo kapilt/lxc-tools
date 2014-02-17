@@ -10,10 +10,10 @@ setup(name='juju-lxc',
       author_email='kapil.foss@gmail.com',
       description="An alternate lxc container integration with juju",
       long_description=open("readme.rst").read(),
-      url='http://github/kapilt/juju-docean',
+      url='http://github/kapilt/juju-lxc',
       license='BSD',
       packages=find_packages(),
-      install_requires=["PyYAML", "dop"],
+      install_requires=["PyYAML"],
       entry_points={
           "console_scripts": [
               'jlxc-add = juju_lxc.add:main',

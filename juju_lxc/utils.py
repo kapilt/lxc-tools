@@ -3,7 +3,6 @@ import yaml
 
 from jujuclient import Environment
 
-
 def _config_from_env(juju_conf):
     data = {}
     with open(juju_conf) as fh:
