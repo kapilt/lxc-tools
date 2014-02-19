@@ -12,11 +12,7 @@ log = logging.getLogger('jlxc')
 
 def setup_parser():
     parser = argparse.ArgumentParser(
-        description="Add container to environment")
-    parser.add_argument('-c', "--count", type=int, default=1,
-                        help="Number of containers to create")
-    parser.add_argument('-s', "--offset", type=int, default=1,
-                        help="Name index offset")
+        description="Remove containers from environment")
     parser.add_argument('-e', "--environment",
                         dest="env_name",
                         default=os.environ.get("JUJU_ENV"),
@@ -37,6 +33,9 @@ def main():
                   if c.startswith('%s-m' % options.env_name)]
 
     log.info("Destroy containers %s", " ".join(containers))
+    for c in containers:
+        subprocess.check_output([
+            "sudo", "lxc-destroy", "--force", "-n", c])
 
     m = env.status()
     machines = m['Machines'].keys()
@@ -44,6 +43,7 @@ def main():
 
     log.info("Terminating machines in juju")
     env.destroy_machines(machines, force=True)
+
 
 
 if __name__ == '__main__':
