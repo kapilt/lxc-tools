@@ -34,22 +34,23 @@ def add_container(env, container_name, base):
         {'Mem': 1024 * 16, 'Arch': 'amd64', 'CpuCores': 2},
         [])
 
-    # Create userdata for the machine.
+    # Get userdata/juju install script for the machine.
     mid = result['Machine']
     result = env.provisioning_script(mid, nonce, disable_apt=True)
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    tf.write(result['Script'])
-    tf.flush()
 
     log.debug(" Cloning container")
-    subprocess.check_output(
-        ["sudo", "lxc-clone", "-s", "-B", "btrfs",
-         base, container_name,
-         "--", "-u", tf.name, "-i", container_name])
-    log.debug(" Starting container as juju machine %s", mid)
-    with tf:
+    with tempfile.NamedTemporaryFile() as fh:
+        fh.write(result['Script'])
+        fh.write("\n")
+        fh.flush()
         subprocess.check_output(
-            ["sudo", "lxc-start", "-d", "-n", container_name])
+            ["sudo", "lxc-clone", "-s", "-B", "btrfs",
+             base, container_name,
+             "--", "-u", fh.name, "-i", container_name])
+
+    log.debug(" Starting container as juju machine %s", mid)
+    subprocess.check_output(
+        ["sudo", "lxc-start", "-d", "-n", container_name])
 
 
 def main():
@@ -59,7 +60,7 @@ def main():
     options = parser.parse_args()
     env = connect(options.env_name)
 
-    for i in range(options.offset, options.count+1):
+    for i in range(options.offset, options.offset+options.count):
         container_name = "%s-m%d" % (options.env_name, i)
         log.info("Creating container %s", container_name)
         add_container(env, container_name, options.base_name)

@@ -26,7 +26,7 @@ def main():
     options = parser.parse_args()
     env = connect(options.env_name)
 
-    output = subprocess.check_output(["sudo", "lxc-ls", "--running"])
+    output = subprocess.check_output(["sudo", "lxc-ls"])
     containers = output.strip().split("\n")
 
     containers = [c for c in containers
@@ -43,8 +43,6 @@ def main():
 
     log.info("Terminating machines in juju")
     env.destroy_machines(machines, force=True)
-
-
 
 if __name__ == '__main__':
     main()
