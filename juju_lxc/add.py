@@ -44,7 +44,9 @@ def add_container(env, container_name, base):
         fh.write("\n")
         fh.flush()
         subprocess.check_output(
-            ["sudo", "lxc-clone", "-s", "-B", "btrfs",
+            ["sudo", "lxc-clone", "-s", 
+#            "-B", "btrfs",
+            "-B", "aufs",  # more universal
              base, container_name,
              "--", "-u", fh.name, "-i", container_name])
 
