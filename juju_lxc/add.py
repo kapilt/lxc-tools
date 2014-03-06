@@ -15,6 +15,9 @@ def setup_parser():
         description="Add container to environment")
     parser.add_argument('-b', "--base", dest="base_name",
                         help="Base container to clone")
+    parser.add_argument('-f', "--fs", default="btrfs",
+                        choices=("btrfs", "aufs"),
+                        help="Filesystem type")
     parser.add_argument('-c', "--count", type=int, default=1,
                         help="Number of containers to create")
     parser.add_argument('-s', "--offset", type=int, default=1,
@@ -26,7 +29,7 @@ def setup_parser():
     return parser
 
 
-def add_container(env, container_name, base):
+def add_container(env, container_name, base, fs):
     log.debug(" Registering container with juju")
     nonce = "manual:%s" % uuid.uuid4().get_hex()
     result = env.register_machine(
@@ -44,9 +47,8 @@ def add_container(env, container_name, base):
         fh.write("\n")
         fh.flush()
         subprocess.check_output(
-            ["sudo", "lxc-clone", "-s", 
-#            "-B", "btrfs",
-            "-B", "aufs",  # more universal
+            ["sudo", "lxc-clone", "-s",
+             "-B", fs,
              base, container_name,
              "--", "-u", fh.name, "-i", container_name])
 
@@ -65,7 +67,7 @@ def main():
     for i in range(options.offset, options.offset+options.count):
         container_name = "%s-m%d" % (options.env_name, i)
         log.info("Creating container %s", container_name)
-        add_container(env, container_name, options.base_name)
+        add_container(env, container_name, options.base_name, options.fs)
 
 
 if __name__ == '__main__':
