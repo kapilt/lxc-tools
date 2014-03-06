@@ -42,7 +42,7 @@ then
 #ssh-keygen  -q -b 2048 -t rsa -f ~/.ssh/id_containers_rsa -N ""
 
 # Create seed container
-#sudo lxc-create -n precise-base -t ubuntu-cloud -- -S ~/.ssh/id_containers_rsa.pub
+#sudo lxc-create -n precise-base -t ubuntu-cloud -- -r precise -S ~/.ssh/id_containers_rsa.pub
 
 
 #
