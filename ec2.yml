@@ -3,13 +3,12 @@
   user: ubuntu
   gather_facts: false
   vars:
-    session_id: 0fdbbd86-bc20-11e3-80da-1f849140269d
-    launchpad_user: hazmat
+    session_id: 0fdbbd86-bc20-11e3-80da-abcdef1232
     instance_name: Juju Fast LXC
     ec2_region: us-east-1
     ec2_key: realms
-    instance_type: m1.small
-
+    instance_type: m3.xlarge
+    trusty_image: ami-b5e4f7dc
   tasks:
     - name: Create jlxc security group
       local_action:
@@ -31,7 +30,7 @@
       register: ec2
       local_action:
         module: ec2
-        image: ami-d38d9aba
+        image: "{{ trusty_image }}"
         group: jlxc
         id: "{{ session_id }}"
         region: "{{ ec2_region }}"
@@ -39,9 +38,6 @@
         keypair: "{{ ec2_key }}"
         wait: yes
         wait_timeout: 350
-        user_data: |
-          # cloud-config
-          ssh-import-id: [{{ launchpad_user }}]
         instance_tags:
           Name: "{{ instance_name }}"
         volumes:
@@ -61,7 +57,7 @@
   hosts: launched
   user: ubuntu
   sudo: true
-  gather_facts: true
+  gather_facts: false
   vars:
     release_stream: daily
     series:
@@ -89,6 +85,22 @@
     - name: Storage fstab entry
       mount: name=/var/lib/lxc src=/dev/xvdc fstype=btrfs opts="discard,relatime,compress=lzo"  state=mounted
 
+    - name: SSH Keygen
+      sudo: false
+      action: command ssh-keygen -t rsa  -N "" -f ~/.ssh/id_rsa
+
+    - name: Install jlxc tools
+      sudo: false
+      action: git repo=https://github.com/kapilt/juju-lxc.git dest=/home/ubuntu/jlxc
+
+    - name: Setup jlxc tools
+      sudo: false
+      action: pip virtualenv=/home/ubuntu requirements=/home/ubuntu/jlxc/requirements.txt state=present
+
+    - name: Setup jlxc tools
+      sudo: false
+      action: command chdir=/home/ubuntu/jlxc /home/ubuntu/bin/python setup.py develop
+
     # Juju auto initializes its keys on any command
     - name: Juju init keys
       sudo: false
@@ -99,7 +111,7 @@
       register: lxc_list
 
     - name: Create series template containers
-      action: command lxc-create -B btrfs -t ubuntu-cloud -n {{ item }}-template -- -r {{ item }} -s {{ release_stream }} -S /home/ubuntu/.juju/ssh/juju_id_rsa.pub
+      action: command lxc-create -B btrfs -t ubuntu-cloud -n {{ item }}-template -- -r {{ item }} -s {{ release_stream }} -S /home/ubuntu/.ssh/id_rsa.pub
       when: "'{{ item }}' not in '''{{ lxc_list.stdout }}'''"
       with_items: series
 
@@ -120,12 +132,7 @@
       with_items: series
 
     - name: Stop template containers
-      action: command lxc-stop -d -n {{ item }}-template
+      action: command lxc-stop -n {{ item }}-template
       with_items: series
 
-    - name: Stop template containers
-      action: command lxc-stop -d -n {{ item }}-template
-      with_items: series
 
-    - name: Install jlxc tools
-      action: git repo=https://github.com/kapilt/juju-lxc.git dest=/home/ubuntu/jlxc
