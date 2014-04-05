@@ -87,7 +87,7 @@
 
     - name: SSH Keygen
       sudo: false
-      action: command ssh-keygen -t rsa  -N "" -f ~/.ssh/id_rsa
+      action: command creates=/home/ubuntu/.ssh/id_rsa ssh-keygen -t rsa  -N "" -f ~/.ssh/id_rsa
 
     - name: Install jlxc tools
       sudo: false
@@ -117,6 +117,10 @@
 
     - name: Start template series containers
       action: command lxc-start -d -n {{ item }}-template
+      with_items: series
+
+    - name: Initialize template series containers (0/3)
+      action: command lxc-attach -n {{ item }}-template -- apt-get update
       with_items: series
 
     - name: Initialize template series containers (1/3)
