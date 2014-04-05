@@ -41,7 +41,7 @@ def main():
     machines = m['Machines'].keys()
     machines.remove('0')
 
-    log.info("Terminating machines in juju")
+    log.info("Terminating machines in juju %s", " ".join(machines))
     env.destroy_machines(machines, force=True)
 
 if __name__ == '__main__':
