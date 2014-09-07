@@ -1,0 +1,16 @@
+
+ Setup apt-proxy
+ Download image / with feedback (parallel download ?)
+ Bind mount config
+ Aufs or btrfs
+
+
+Commands
+
+  init
+  bootstrap
+  add-machine
+  terminate-machine
+  info
+ 
+
