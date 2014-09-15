@@ -1,3 +1,13 @@
+import logging
+import os
+import subprocess
+import sys
+
+from utils import run
+
+
+log = logging.getLogger('jlxc')
+
 
 class Lxc(object):
 
@@ -86,7 +96,7 @@ class Lxc(object):
             results.append(dict(zip(keys, values)))
         return results
 
-    def start(self, name):
+    def start(self, name, mem=None, cpu=None, volumes=()):
         params = ["sudo", "lxc-start", "-d"]
         if self.path:
             params.extend(["-P", self.path])
